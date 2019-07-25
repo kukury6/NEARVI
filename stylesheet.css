@@ -1,0 +1,94 @@
+body {
+  font-family: "ヒラギノ角ゴ Pro W3", "Hiragino Kaku Gothic Pro", "メイリオ", Meiryo, Osaka, "ＭＳ Ｐゴシック", "MS PGothic", sans-serif;
+  color: #630;
+  background-color: #F9FFCB;
+}
+
+.header {
+  background-color: #85DE77;
+  color: #630;
+  height:  90px;
+}
+.header_logo {
+  float: left;
+  font-weight: bold;
+  font-size: 40px;
+  padding: 18px 100px 20px 20px;
+}
+.header p {
+  margin: 0 0 6px 0;
+  padding: 16px 0 0 0;
+}
+
+select {
+  float: left;
+  background-color: #FEFFF5;
+  color: #FEFFF5;
+  height: 30px;
+  padding: 4px 6px;
+  border: 1px solid #630;
+  color: #630;
+  border-radius: 5px;
+  font-size: 15px;
+  }
+
+a.btn {
+  float: left;
+  background-color: #FEFFF5;
+  height: 20px;
+  padding: 4px 6px;
+  text-decoration: none;
+  color: #630;
+  border: 1px solid #630;
+  border-radius: 5px;
+  font-size: 15px;
+}
+a.btn:hover {
+  background: #FBFFDB;
+  color: #630;
+}
+
+table {
+  /*border-collapse: collapse;  /*テーブルの罫線を重ねて1本に見せる */
+  border: solid 5px #85DE77;
+  width: 190px;
+  height: 330px;
+  background-color: #FEFFF5;
+  margin: 5px;
+}
+
+table td a {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+table td a:hover {
+  background-color: #FCFFE5;
+  cursor: pointer;
+}
+
+
+
+.modal_main {
+  display: none;
+  width: 500px;
+  height: 300px;
+  margin: 0;
+  padding: 0;
+  background-color: #ffffff;
+  color: #666666;
+  position: fixed;
+  z-index: 2;
+}
+
+#modal_bg {
+  display: none;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
