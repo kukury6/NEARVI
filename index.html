@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>NEARVI</title>
+  <link rel="stylesheet" type="text/css" href="stylesheet.css">
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+</head>
+<body>
+  <!-- ヘッダー -->
+  <div class="header">
+    <!-- ロゴ -->
+    <div class="header_logo">NEARVI</div>
+    <!-- 検索範囲を選択 -->
+    <p>検索半径を選択してください</p>
+    <!-- 検索半径のセレクトボックス -->
+    <form name="select">
+      <select name="ran" size="1">
+        <option value="1">0.3km</option>
+        <option value="2">0.5km</option>
+        <option value="3">1.0km</option>
+        <option value="4">2.0km</option>
+        <option value="5">3.0km</option>
+      </select>
+    </form>
+    <!-- 検索ボタン -->
+    <a href="#" class="btn" onclick="shopSearch()">検索</a>
+  </div><br>
+
+  <!-- 受け取った位置情報を表示 -->
+  <div id="show_locationResult"></div>
+
+  <!-- 検索件数表示 -->
+  <div id="show_shopResult_count"></div>
+  <!-- ページ数表示 -->
+  <div id="show_shopResult_page"></div>
+
+  <!-- テーブル表示 -->
+  <div id="table"></div>
+  <!-- モーダルウィンドウ表示 -->
+  <div id="modal_main_parent"></div>
+
+  <div id='modal_bg'></div>
+
+  <!-- 前のページボタン -->
+  <a id="pageButton1" href="#" class="btn" onclick="shopSearch_back()" hidden>前のページへ</a>
+  <!-- 次のページボタン -->
+  <a id="pageButton2" href="#" class="btn" onclick="shopSearch_next()" hidden>次のページへ</a>
+
+  <script>
+  "use strict";
+
+  /***** 変数定義 *****/
+
+  let lat; //緯度
+  let lng; //経度
+
+  //検索半径
+  let ran;
+  let ranNum;
+  let ranStr;
+
+  // API
+  let api_key = "dfc74626bcd68442577e08badc67f843";
+  let hit_per_page_num = 12; //一度に表示する件数
+  let offset_page_num = 1; //初期ページ
+
+  // API URL
+  let url = "http://api.gnavi.co.jp/RestSearchAPI/20150630/?callback=?"; //レストラン検索API
+
+
+  //ロードした直後の処理（位置情報取得）
+  window.onload = function run() {
+    //Geolocationの呼び出し
+    navigator.geolocation.getCurrentPosition(successCallback, errorCallback);
+
+    //ユーザーの現在の位置情報の取得に成功した場合//
+    function successCallback(position) {
+
+      lat = position.coords.latitude; //緯度
+      lng = position.coords.longitude; //経度
+
+      //緯度経度をHTMLへ書き出し
+      //var gl_text = "緯度：" + lat + "<br>" + "経度：" + lng + "<br>";
+      //document.getElementById("show_locationResult").innerHTML = gl_text;
+    }
+
+    //位置情報の取得に失敗した場合//
+    function errorCallback(error) {
+      var err_msg = "";
+      switch(error.code)
+      {
+        case 1:
+          err_msg = "位置情報の利用が許可されていません";
+          break;
+        case 2:
+          err_msg = "デバイスの位置が判定できません";
+          break;
+        case 3:
+          err_msg = "タイムアウトしました";
+          break;
+      }
+      document.getElementById("show_locationResult").innerHTML = err_msg;
+      //デバッグ用→　document.getElementById("show_result").innerHTML = error.message;
+    }
+  }
+
+
+  //ぐるなびで受け取ったデータを表示
+  function shopResult(result) {
+
+    for (let i in result.rest) {
+      var elm = {
+        name: result.rest[i].name, //店舗名
+        shop_image1: "<img src=" + result.rest[i].image_url.shop_image1 + " width='100%'>", //サムネイル画像
+        access_line: result.rest[i].access.line, //路線名
+        access_station: result.rest[i].access.station, //駅名
+        access_station_exit: result.rest[i].access.station_exit, //駅出口
+        access_walk: result.rest[i].access.walk + "分", //徒歩（分）
+        access_note: result.rest[i].access.note //備考
+      }
+
+      //データがない場合に返ってくる[object Object]というデータをtoString()メソッドを使って文字列に変換する
+      var shop_image1Str = elm.shop_image1.toString();
+      var access_lineStr = elm.access_line.toString();
+      var access_stationStr = elm.access_station.toString();
+      var access_station_exitStr = elm.access_station_exit.toString();
+      var access_walkStr = elm.access_walk.toString();
+      var access_noteStr = elm.access_note.toString();
+
+      if (shop_image1Str === "<img src=[object Object] width='100%'>") {
+        elm.shop_image1 = "<img src=http://design-ec.com/d/e_others_50/m_e_others_501.jpg width='90%'>";
+      }
+      if (access_lineStr === "[object Object]") {
+        elm.access_line = "";
+      }
+      if (access_stationStr === "[object Object]") {
+        elm.access_station = "";
+      }
+      if (access_station_exitStr === "[object Object]") {
+        elm.access_station_exit = "";
+      }
+      if (access_walkStr === "[object Object]分") {
+        elm.access_walk = "";
+      }
+      if (access_noteStr === "[object Object]") {
+        elm.access_note = "";
+      }
+
+      //tableに追加で書き込み
+      $("#table").append(
+        "<table id='target'" + i + " align='left'>" +
+        "<tr align='center'><td><a>" +
+        elm.shop_image1 +
+        "<br><b>" + elm.name +
+        "</b><br>" + elm.access_line +
+        " " + elm.access_station +
+        " " + elm.access_station_exit +
+        "<br>" + elm.access_walk +
+        " " + elm.access_note +
+        "</a></td></tr>" +
+        "</table>"
+      )
+
+      //modal_main_parentにmodal_main i を追加
+      let div_element = document.createElement("div");
+      div_element.innerHTML = '<div class="modal_main" id="modal_main' + i + '"></div>';
+      let parent_object = document.getElementById("modal_main_parent");
+      parent_object.appendChild(div_element);
+
+      //modal_main iに追加で書き込み
+      $("#modal_main" + i).append(
+        "<p>店舗名称</p>" + elm.name +
+        "<p>住所</p>"
+      )
+    }
+  }
+
+  //セルをクリックしたら
+  function modal_open(result){
+    $("#target a").on("click", function() {
+      //画面中央を計算する関数を実行
+      modalResize();
+      //モーダルウィンドウを表示
+      $("#modal_bg,#modal_main1").fadeIn("slow");
+      //画面のどこかをクリックしたらモーダルを閉じる
+      $("#modal_bg,#modal_main1").click(function(){
+        $("#modal_bg,#modal_main1").fadeOut("slow");
+      })
+      //画面中央を計算
+      $(window).resize(modalResize);
+      function modalResize(){
+        var w = $(window).width();
+        var h = $(window).height();
+        var cw = $("#modal_main1").outerWidth();
+        var ch = $("#modal_main1").outerHeight();
+        //取得した値をCSSに追加する
+        $(".modal_main").css({
+          "left": ((w - cw)/2) + "px",
+          "top": ((h - ch)/2) + "px"
+        })
+      }
+    })
+  }
+
+  //取得件数を表示
+  function shopNum(result) {
+    if(result.total_hit_count > 0){
+      document.getElementById("show_shopResult_count").innerHTML = result.total_hit_count + "件のお店がみつかりました";
+    }else{
+      document.getElementById("show_shopResult_count").innerHTML = "お店がみつかりませんでした";
+    }
+  }
+
+  //検索を押したときの処理
+  function shopSearch() {
+    //ページボタンを表示させる
+    document.getElementById("pageButton2").hidden = false;
+    //ページ数をリセット
+    offset_page_num = 1;
+    //tableをリセット
+    $("#table").html("");
+    //検索半径
+    //HTMLから値を受け取る
+    ran = document.select.ran;
+    //値（数値）を取得
+    ranNum = ran.selectedIndex;
+    //値（数値）から値（value値）を取得
+    ranStr = ran.options[ranNum].value;
+    //ぐるなびAPI取得
+    let params = {
+      keyid: api_key,
+      format: "json",
+      latitude: lat,
+      longitude: lng,
+      range: ranStr,
+      hit_per_page: hit_per_page_num,
+      offset_page: offset_page_num,
+    }
+    $.getJSON(url, params, function(result) {
+      //店舗データ表示
+      shopResult(result);
+      //店舗件数を表示
+      shopNum(result);
+
+      modal_open(result);
+    })
+    //何ページ目か表示
+    document.getElementById("show_shopResult_page").innerHTML = offset_page_num + "ページ目";
+  }
+
+  //次のページを押したときの処理
+  function shopSearch_next() {
+    //ページボタンを表示させる
+    document.getElementById("pageButton1").hidden = false;
+    //ページ数を更新
+    offset_page_num++;
+    //tableをリセット
+    $("#table").html("");
+    //modal_mainをリセット
+    $(".modal_main").html("");
+    //ぐるなびAPI取得
+    let params = {
+      keyid: api_key,
+      format: "json",
+      latitude: lat,
+      longitude: lng,
+      range: ranStr,
+      hit_per_page: hit_per_page_num,
+      offset_page: offset_page_num
+    }
+    $.getJSON(url, params, function(result) {
+      //店舗データ表示
+      shopResult(result);
+
+      modal_open();
+    })
+    //何ページ目か表示
+    document.getElementById("show_shopResult_page").innerHTML = offset_page_num + "ページ目";
+  }
+
+  //前のページを押したときの処理
+  function shopSearch_back() {
+    if(offset_page_num >= 2){
+      //ページ数を更新
+      offset_page_num--;
+      //tableをリセット
+      $("#table").html("");
+      //ぐるなびAPI取得
+      let params = {
+        keyid: api_key,
+        format: "json",
+        latitude: lat,
+        longitude: lng,
+        range: ranStr,
+        hit_per_page: hit_per_page_num,
+        offset_page: offset_page_num
+      }
+      $.getJSON(url, params, function(result) {
+        //店舗データ表示
+        shopResult(result);
+      })
+      //何ページ目か表示
+      document.getElementById("show_shopResult_page").innerHTML = offset_page_num + "ページ目";
+    }
+  }
+
+
+
+
+
+  </script>
+</body>
+</html>
